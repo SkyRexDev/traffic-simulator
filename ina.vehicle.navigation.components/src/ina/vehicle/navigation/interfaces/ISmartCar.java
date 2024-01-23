@@ -12,5 +12,9 @@ public interface ISmartCar extends IIdentifiable {
     
     public String getVehicleRole();
     
-    public void setVehicleRole(String vehicle_role);
+    public void setVehicleRole(String vehicleRole);
+    
+    public int getCurrentSpeed();
+    
+    public void setCurrentSpeed(int vehicleSpeed);
 }
