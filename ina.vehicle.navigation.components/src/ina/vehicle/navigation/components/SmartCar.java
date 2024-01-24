@@ -1,15 +1,18 @@
 package ina.vehicle.navigation.components;
 
+import java.util.ArrayList;
+
+import ina.vehicle.navigation.interfaces.IRouteFragment;
 import ina.vehicle.navigation.interfaces.ISmartCar;
 import ina.vehicle.navigation.utils.MyBean;
-import org.eclipse.paho.client.mqttv3.*;
 
 public class SmartCar implements ISmartCar {
 
 	protected MyBean bean = null;
 	private String vehicleRole = null;
 	protected RoadPoint roadPoint = null;
-	private Navigator navigator;
+	protected Navigator navigator;
+	private Route route;
 	private int vehicleSpeed = 40; //km/h
 
 	public SmartCar(String id, String vehicleRole) {
@@ -17,6 +20,12 @@ public class SmartCar implements ISmartCar {
 		this.setVehicleRole(vehicleRole);
 		
 		this.navigator = new Navigator("vehicleNavigator" + id);
+		
+		route = new Route();
+		route.addRouteFragment("R1s1", 0, 29);
+		route.addRouteFragment("R1s2a", 29, 320);
+		route.addRouteFragment("R5s1", 0, 300);
+		this.navigator.setRoute(route);
 	}
 
 	@Override
@@ -65,5 +74,12 @@ public class SmartCar implements ISmartCar {
 	public void setCurrentSpeed(int vehicleSpeed) {
 		this.vehicleSpeed = vehicleSpeed;
 	}
-
+	
+	public ArrayList<IRouteFragment> getRoute() {
+		return this.route;
+	}
+    
+    public void setRoute(Route route) {
+    	this.navigator.setRoute(route);
+    }
 }
