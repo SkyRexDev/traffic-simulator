@@ -2,30 +2,33 @@ package ina.vehicle.navigation.components;
 
 import java.util.ArrayList;
 
+import ina.vehicle.navigation.interfaces.IRoadSegment;
 import ina.vehicle.navigation.interfaces.IRouteFragment;
 import ina.vehicle.navigation.interfaces.ISmartCar;
 import ina.vehicle.navigation.utils.MyBean;
 
 public class SmartCar implements ISmartCar {
 
+	private static final String BROKER_URL = "tcp://ttmi008.iot.upv.es:1883";
+	
+	public Navigator navigator;
+	public SmartCarClient smartCarClient;
 	protected MyBean bean = null;
 	private String vehicleRole = null;
 	protected RoadPoint roadPoint = null;
-	protected Navigator navigator;
 	private Route route;
 	private int vehicleSpeed = 40; //km/h
 
-	public SmartCar(String id, String vehicleRole) {
+	public SmartCar(String id, String vehicleRole, Route route) {
 		this.bean = new MyBean(id);
 		this.setVehicleRole(vehicleRole);
 		
 		this.navigator = new Navigator("vehicleNavigator" + id);
 		
-		route = new Route();
-		route.addRouteFragment("R1s1", 0, 29);
-		route.addRouteFragment("R1s2a", 29, 320);
-		route.addRouteFragment("R5s1", 0, 300);
 		this.navigator.setRoute(route);
+		this.navigator.startRouting(); 
+		
+		smartCarClient = new SmartCarClient(this, BROKER_URL);
 	}
 
 	@Override
