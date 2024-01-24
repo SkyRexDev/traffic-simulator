@@ -3,6 +3,7 @@ package ina.myvehicle.test;
 import ina.vehicle.navigation.components.Navigator;
 import ina.vehicle.navigation.components.RoadPoint;
 import ina.vehicle.navigation.components.Route;
+import ina.vehicle.navigation.components.SpeedLimit;
 import ina.vehicle.navigation.interfaces.INavigator;
 import ina.vehicle.navigation.interfaces.IRoadPoint;
 import ina.vehicle.navigation.interfaces.IRoute;
