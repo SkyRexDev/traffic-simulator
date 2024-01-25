@@ -15,12 +15,5 @@ public class SmartCarTester {
 		route.addRouteFragment("R1s2a", 29, 320);
 		route.addRouteFragment("R5s1", 0, 300);
 		SmartCar smartcar = new SmartCar("2567KLM", "PrivateUsage", route);
-		
-		while (true) {
-			if (smartcar.navigator.getNavigatorStatus() == ENavigatorStatus.REACHED_DESTINATION) {
-				Thread.sleep(1000);
-				smartcar.smartCarClient.disconnect();
-			}
-		}
 	}
 }
