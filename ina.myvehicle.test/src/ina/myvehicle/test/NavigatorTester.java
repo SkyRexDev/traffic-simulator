@@ -2,7 +2,9 @@ package ina.myvehicle.test;
 
 import ina.vehicle.navigation.components.Navigator;
 import ina.vehicle.navigation.components.RoadPoint;
+import ina.vehicle.navigation.components.RoadSegment;
 import ina.vehicle.navigation.components.Route;
+import ina.vehicle.navigation.components.SpeedLimit;
 import ina.vehicle.navigation.interfaces.INavigator;
 import ina.vehicle.navigation.interfaces.IRoadPoint;
 import ina.vehicle.navigation.interfaces.IRoute;
@@ -26,6 +28,7 @@ public class NavigatorTester {
 		ruta.addRouteFragment("R1s1", 0, 29);
 		ruta.addRouteFragment("R1s2a", 29, 320);
 		ruta.addRouteFragment("R5s1", 0, 300);
+		
 
 		MySimpleLogger.info("main", "Setting Route " + ruta);
 		navigator.setRoute(ruta);
@@ -37,7 +40,7 @@ public class NavigatorTester {
 		// iniciamos la navegación
 		navigator.startRouting();
 		MySimpleLogger.info("main", "Navigator Status: " + navigator.getNavigatorStatus().getName());
-		
+		SpeedLimit test1 = new SpeedLimit("test1", 40, navigator.getCurrentPosition().getRoadSegment(), 2, 4);
 		// establecemos la velocidad a la que indicaremos que estamos avanzando ...
 		my_current_vehicle_speed = 40;
 		

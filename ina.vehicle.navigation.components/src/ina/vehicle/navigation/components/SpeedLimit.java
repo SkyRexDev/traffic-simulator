@@ -21,21 +21,23 @@ public class SpeedLimit implements MqttCallback {
 
 	MqttClient myClient;
 	MqttConnectOptions connOpt;
-	static final String BROKER_URL = "tcp://tambori.dsic.upv.es:10083";
+	static final String BROKER_URL = "tcp://ttmi008.iot.upv.es";
 	private String id;
 	private String myTopic;
-	private RoadSegment road;
+	private String road;
 	private int speed;
 	private float maxRoad;
 	private float minRoad;
 	
-	public SpeedLimit(String idA, int maxSpeed, RoadSegment roadSegment, float firstKM, float lastKM) {
+	public SpeedLimit(String idA, int maxSpeed, String roadSegment, float firstKM, float lastKM) {
 		id = "speedSignal." + idA;
 		speed = maxSpeed;
 		road = roadSegment;
 		minRoad = firstKM;
 		maxRoad = lastKM;
 		myTopic = "es/upv/pros/tatami/smartcities/traffic/PTPaterna/step";
+		connect();
+		subscribe(myTopic);
 	}
 	
 	protected void _debug(String message) {
@@ -57,18 +59,18 @@ public class SpeedLimit implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage message2) throws Exception {
 		
 		String payload = new String(message2.getPayload());
-		String topic1 = "es/upv/pros/tatami/smartcities/traffic/PTPaterna/road/" + road.getId() + "/signals";
+		String topic1 = "es/upv/pros/tatami/smartcities/traffic/PTPaterna/road/" + this.road + "/signals";
 		//System.out.println("-------------------------------------------------");
 		//System.out.println("| Topic:" + topic);
 		//System.out.println("| Message: " + payload);
 		//System.out.println("-------------------------------------------------");
 		
-		MqttTopic topic2 = myClient.getTopic(topic);
+		MqttTopic topic2 = this.myClient.getTopic(topic1);
     	JSONObject pubMsg = new JSONObject();
 		try {
 			pubMsg.put("signal-type", "SPEED_LIMIT");
 			pubMsg.put("id", id);
-			pubMsg.put("road", road.getId());
+			pubMsg.put("road", this.road);
 			pubMsg.put("max-speed", speed);
 			pubMsg.put("first-km", minRoad);
 			pubMsg.put("last-km", maxRoad);
@@ -78,24 +80,19 @@ public class SpeedLimit implements MqttCallback {
 		}
 		
    		int pubQoS = 0;
-   		
    		MqttMessage message = new MqttMessage(pubMsg.toString().getBytes());
     	message.setQos(pubQoS);
     	message.setRetained(true);
     	// Publish the message
-    	this._debug("Publishing to topic \"" + topic2 + "\" qos " + pubQoS);
+    	this._debug("Publishing to topic \"" + topic1 + "\" qos " + pubQoS);
     	MqttDeliveryToken token = null;
-    	try {
-    		// publish message to broker
-			token = topic2.publish(message);
-			this._debug(pubMsg.toString());
-	    	// Wait until the message has been delivered to the broker
-			token.waitForCompletion();
-			Thread.sleep(100);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
+        try {
+            token = topic2.publish(new MqttMessage((pubMsg.toString()).getBytes()));
+            this._debug("Message: " + pubMsg.toString());
+        } catch (Exception e) {
+            MySimpleLogger.error(this.getClass().getName(), "Failed to publish message");
+            e.printStackTrace();
+        }
 
 
 	}
