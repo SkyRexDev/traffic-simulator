@@ -81,7 +81,7 @@ public class SpeedLimit implements MqttCallback {
    		
    		MqttMessage message = new MqttMessage(pubMsg.toString().getBytes());
     	message.setQos(pubQoS);
-    	message.setRetained(false);
+    	message.setRetained(true);
     	// Publish the message
     	this._debug("Publishing to topic \"" + topic2 + "\" qos " + pubQoS);
     	MqttDeliveryToken token = null;
