@@ -14,6 +14,7 @@ public class SmartCarTester {
 		route.addRouteFragment("R1s1", 0, 29);
 		route.addRouteFragment("R1s2a", 29, 320);
 		route.addRouteFragment("R5s1", 0, 300);
-		SmartCar smartcar = new SmartCar("2567KLM", "PrivateUsage", route);
+		SmartCar smartcar = new SmartCar("2567KLM", "Ambulance", route);
+		smartcar.setCurrentSpeed(100);
 	}
 }
