@@ -1,5 +1,12 @@
 package ina.vehicle.navigation.components;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -8,6 +15,8 @@ import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import ina.vehicle.navigation.interfaces.IRoadPoint;
 import ina.vehicle.navigation.types.ENavigatorStatus;
@@ -21,11 +30,16 @@ public class SmartCarClient implements MqttCallback {
 	private static final String SIGNAL_TOPIC = "es/upv/pros/tatami/smartcities/traffic/PTPaterna/road/%s/signals";
 	// action, vehicleRole, vehicleId, roadSegment, point
 	private static final String TRAFFIC_MSG = "{\"msg\":{\"action\": \"%s\", \"vehicle-role\": \"%s\", \"vehicle-id\": \"%s\", \"road-segment\": \"%s\", \"position\": 0},\"id\": \"MSG_1638979846783\",\"type\": \"TRAFFIC\",\"timestamp\": 1638979846783}\n";
+	// + roadSegment
+	private static final String ROAD_SEGMENT_URL = "http://ttmi008.iot.upv.es:8182/segment/";
+	
 
 	private SmartCar smartCar;
 	private MqttConnectOptions connectionOptions;
 	private MqttClient vehicleClient;
 	private String broker;
+	private int roadSegmentSpeed = -1;
+	private int signalSpeed = 1000;
 
 	public SmartCarClient(SmartCar smartCar, String brokerUrl) {
 		this.smartCar = smartCar;
@@ -48,7 +62,7 @@ public class SmartCarClient implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		Navigator navigator = this.smartCar.navigator;
 		String lastRoadSegment = navigator.getCurrentPosition().getRoadSegment();
-		
+
 		//If end of the road, vehicle out & unsubscribe
 		if (navigator.getNavigatorStatus() == ENavigatorStatus.REACHED_DESTINATION) {
 			publish(TRAFFIC_TOPIC, lastRoadSegment, buildPositionMessage("VEHICLE_OUT", lastRoadSegment));
@@ -57,20 +71,22 @@ public class SmartCarClient implements MqttCallback {
 			MySimpleLogger.trace(this.getClass().getName(), "Route finished, stopping...");
 		}
 
-		//Adjust speed && check for traffic lights
-		if (topic.equals(SIGNAL_TOPIC) && !isSpecialVehicle()) {
-			//Need max speed for segment ??
-			
-			//traffic signal
-			
-			
+		MySimpleLogger.trace(topic, String.format(SIGNAL_TOPIC, lastRoadSegment));
+		
+		//Monitor signals
+		if (topic.equals(String.format(SIGNAL_TOPIC, lastRoadSegment)) ) {
+			//updateSignalSpeed
+			MySimpleLogger.trace(this.getClass().getName(), "GOT json from signal topic \n" + message.getPayload());
+			vehicleClient.unsubscribe(String.format(SIGNAL_TOPIC, lastRoadSegment));
 		}
 		
 		// On each simulation step, ask the car (Navigation) to move
 		if (topic.equals(STEP_TOPIC)) {
-			navigator.move(3000, this.smartCar.getCurrentSpeed());
+			navigator.move(3000, setVehicleSpeed());
 
 			updatePositionToBroker(lastRoadSegment);
+			
+			//change subscription to signal
 		}
 		
 	}
@@ -154,5 +170,59 @@ public class SmartCarClient implements MqttCallback {
 	
 	private Boolean isSpecialVehicle() {
 		return (this.smartCar.getVehicleRole().equals("Ambulance")) || (this.smartCar.getVehicleRole().equals("Police"));
+	}
+	
+	private void checkRoadSegmentMaxSpeed(String lastRoadSegment) {
+		String currentRoadSegment = this.smartCar.navigator.getCurrentPosition().getRoadSegment();
+		roadSegmentSpeed = getRoadSegmentMaxSpeed(currentRoadSegment);
+	}
+	
+	private int getRoadSegmentMaxSpeed(String roadSegment) {		
+		URL roadSegmentUrl;
+		JSONObject json = new JSONObject();
+		try {
+			roadSegmentUrl = new URL(ROAD_SEGMENT_URL + roadSegment);
+			HttpURLConnection connection = (HttpURLConnection) roadSegmentUrl.openConnection();
+			connection.setRequestMethod("GET");
+			connection.setRequestProperty("Content-Type", "application/json");
+			
+			InputStream is = connection.getInputStream();			
+		    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+		    StringBuffer response = new StringBuffer();
+		    String line;
+		    while ((line = rd.readLine()) != null) {
+		      response.append(line);
+		      response.append('\r');
+		    }
+		    rd.close();
+			json = new JSONObject(response.toString());
+		} catch (Exception e) {
+			MySimpleLogger.error(this.getClass().getName(), "Failed to get roadSegment info");
+			e.printStackTrace();
+		}
+		
+		if(json.equals(new JSONObject())) {
+			MySimpleLogger.error(this.getClass().getName(), "Empty JSON bad http petitition");
+			return 0;
+		}
+		
+		int segmentSpeed = 0;
+		try {
+			segmentSpeed= (int) json.get("max-speed");
+			MySimpleLogger.info(this.getClass().getName(), "Current segment MAX-SPEED " + segmentSpeed);
+		} catch (JSONException e) {
+			MySimpleLogger.error(this.getClass().getName(), "No max-speed field");
+			e.printStackTrace();
+		}
+		
+		return segmentSpeed;
+	}
+	
+	private int setVehicleSpeed() {	
+		checkRoadSegmentMaxSpeed(ROAD_SEGMENT_URL);
+		if(isSpecialVehicle()) {
+			return this.smartCar.getCurrentSpeed();
+		}
+		return Math.min(this.smartCar.getCurrentSpeed(), Math.min(roadSegmentSpeed, signalSpeed));
 	}
 }

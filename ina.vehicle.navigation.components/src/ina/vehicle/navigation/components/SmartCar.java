@@ -13,6 +13,7 @@ public class SmartCar implements ISmartCar {
 	
 	public Navigator navigator;
 	public SmartCarClient smartCarClient;
+	public SmartCarSignalSubscriber smartCarSignalSubscriber;
 	protected MyBean bean = null;
 	private String vehicleRole = null;
 	protected RoadPoint roadPoint = null;
@@ -29,6 +30,7 @@ public class SmartCar implements ISmartCar {
 		this.navigator.startRouting(); 
 		
 		smartCarClient = new SmartCarClient(this, BROKER_URL);
+		//smartCarSignalSubscriber = new SmartCarSignalSubscriber();
 	}
 
 	@Override
