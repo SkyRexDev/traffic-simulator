@@ -6,6 +6,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONObject;
 
 import ina.vehicle.navigation.utils.MySimpleLogger;
 
@@ -18,15 +19,19 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 	private String broker;
 	private MqttConnectOptions connectionOptions;
 	private MqttClient signalClient;
+	private String roadSegment;
+	
+	private int speedLimit = 100;
 	
 	public SmartCarSignalSubscriber(SmartCar smartCar, String brokerUrl, String roadSegment) {
 		this.smartCar = smartCar;
 		this.broker = brokerUrl;
-		connect(brokerUrl);
+		this.roadSegment = roadSegment;
+		connect(broker);
 	}
 	
 	public void connect(String brokerUrl) {
-		String clientID = this.smartCar.getId() + ".subscriber";
+		String clientID = this.smartCar.getId() + ".signalSubscriber";
 		connectionOptions = new MqttConnectOptions();
 
 		connectionOptions.setCleanSession(true);
@@ -42,9 +47,9 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 			MySimpleLogger.error(this.getClass().getName(), "Failed to connect to broker");
 			e.printStackTrace();
 		} finally {
-			MySimpleLogger.info(this.getClass().getName(), "smartcar " + smartCar.getId() + " connected to the broker ");
+			MySimpleLogger.info(this.getClass().getName(), "connected to broker signal");
 		}
-		//subscribe(STEP_TOPIC);
+		subscribe(String.format(SIGNAL_TOPIC, this.roadSegment));
 	}
 
 	@Override
@@ -60,8 +65,36 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 	}
 
 	@Override
-	public void messageArrived(String arg0, MqttMessage arg1) throws Exception {
-		// TODO Auto-generated method stub
-		
+	public void messageArrived(String topic, MqttMessage message) throws Exception {
+		//Parse incoming json
+		JSONObject json = new JSONObject(message.toString());
+		MySimpleLogger.info(this.getClass().getName(), json.toString());
+		//Check signal-type
+		//speed-limit
+		if (json.get("signal-type").equals("speed-limit")) {
+			this.speedLimit = (int) json.get("max-speed");
+		}
+		//traffic-light
+	}
+	
+	public void subscribe(String topic) {
+		try {
+			this.signalClient.subscribe(topic, 0);
+		} catch (MqttException e) {
+			MySimpleLogger.error(this.getClass().getName(), "Failed to subscribe to topic" + topic);
+			e.printStackTrace();
+		} finally {
+			MySimpleLogger.info(this.getClass().getName(), "Signal subscribed to " + topic);
+		}
+	}
+	
+	public void unsubscribe(String topic) {
+		try {
+			this.signalClient.unsubscribe(topic);
+		} catch (MqttException e) {
+			MySimpleLogger.error(this.getClass().getName(), "Failed to unsubscribe to topic" + topic);
+			e.printStackTrace();
+		}
+		MySimpleLogger.info(this.getClass().getName(), "Signal unsubscribed to " + topic);
 	}
 }

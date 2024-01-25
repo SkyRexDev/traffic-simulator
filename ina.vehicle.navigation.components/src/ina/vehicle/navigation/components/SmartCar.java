@@ -30,7 +30,7 @@ public class SmartCar implements ISmartCar {
 		this.navigator.startRouting(); 
 		
 		smartCarClient = new SmartCarClient(this, BROKER_URL);
-		//smartCarSignalSubscriber = new SmartCarSignalSubscriber();
+		smartCarSignalSubscriber = new SmartCarSignalSubscriber(this, BROKER_URL, this.navigator.getCurrentPosition().getRoadSegment());
 	}
 
 	@Override

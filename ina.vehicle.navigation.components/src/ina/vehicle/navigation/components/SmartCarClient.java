@@ -70,16 +70,7 @@ public class SmartCarClient implements MqttCallback {
 			vehicleClient.unsubscribe(STEP_TOPIC);
 			MySimpleLogger.trace(this.getClass().getName(), "Route finished, stopping...");
 		}
-
-		MySimpleLogger.trace(topic, String.format(SIGNAL_TOPIC, lastRoadSegment));
-		
-		//Monitor signals
-		if (topic.equals(String.format(SIGNAL_TOPIC, lastRoadSegment)) ) {
-			//updateSignalSpeed
-			MySimpleLogger.trace(this.getClass().getName(), "GOT json from signal topic \n" + message.getPayload());
-			vehicleClient.unsubscribe(String.format(SIGNAL_TOPIC, lastRoadSegment));
-		}
-		
+				
 		// On each simulation step, ask the car (Navigation) to move
 		if (topic.equals(STEP_TOPIC)) {
 			navigator.move(3000, setVehicleSpeed());
@@ -87,6 +78,10 @@ public class SmartCarClient implements MqttCallback {
 			updatePositionToBroker(lastRoadSegment);
 			
 			//change subscription to signal
+			if(lastRoadSegment != navigator.getCurrentPosition().getRoadSegment()) {
+				this.smartCar.smartCarSignalSubscriber.unsubscribe(String.format(SIGNAL_TOPIC,lastRoadSegment));
+				this.smartCar.smartCarSignalSubscriber.subscribe(String.format(SIGNAL_TOPIC,navigator.getCurrentPosition().getRoadSegment()));
+			}
 		}
 		
 	}
@@ -209,7 +204,6 @@ public class SmartCarClient implements MqttCallback {
 		int segmentSpeed = 0;
 		try {
 			segmentSpeed= (int) json.get("max-speed");
-			MySimpleLogger.info(this.getClass().getName(), "Current segment MAX-SPEED " + segmentSpeed);
 		} catch (JSONException e) {
 			MySimpleLogger.error(this.getClass().getName(), "No max-speed field");
 			e.printStackTrace();
