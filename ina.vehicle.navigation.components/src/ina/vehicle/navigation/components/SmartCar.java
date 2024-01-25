@@ -19,6 +19,7 @@ public class SmartCar implements ISmartCar {
 	protected RoadPoint roadPoint = null;
 	private Route route;
 	private int vehicleSpeed = 40; //km/h
+	private int cruiseSpeed = 40;
 
 	public SmartCar(String id, String vehicleRole, Route route) {
 		this.bean = new MyBean(id);
@@ -86,5 +87,15 @@ public class SmartCar implements ISmartCar {
     
     public void setRoute(Route route) {
     	this.navigator.setRoute(route);
+    }
+    
+    public void setCruiseSpeed(int cruiseSpeed) {
+    	//Default value that should be set when instanciated
+    	this.cruiseSpeed = cruiseSpeed;
+    	this.vehicleSpeed = cruiseSpeed;
+    }
+    
+    public int getCruiseSpeed() {
+    	return cruiseSpeed;
     }
 }

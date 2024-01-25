@@ -68,13 +68,25 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		//Parse incoming json
 		JSONObject json = new JSONObject(message.toString());
-		MySimpleLogger.info(this.getClass().getName(), json.toString());
-		//Check signal-type
+		JSONObject messageField = json.getJSONObject("msg");
 		//speed-limit
-		if (json.get("signal-type").equals("speed-limit")) {
+		if (messageField.get("signal-type").equals("speed-limit")) {
 			this.speedLimit = (int) json.get("max-speed");
+			this.smartCar.smartCarClient.signalSpeed = this.speedLimit;
 		}
 		//traffic-light
+		if (messageField.get("signal-type").equals("TRAFFIC_LIGHT")) {
+			int distanceToLight = (int) messageField.get("starting-position") - this.smartCar.navigator.getCurrentPosition().getPosition();
+			if (distanceToLight <= 50) {
+				if (messageField.get("value").equals("HLL")) {
+					//stop car
+					smartCar.smartCarClient.signalSpeed = 0;
+				} else {
+					//go car
+					smartCar.smartCarClient.signalSpeed = smartCar.getCruiseSpeed();
+				}
+			}
+		}
 	}
 	
 	public void subscribe(String topic) {

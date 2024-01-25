@@ -39,7 +39,7 @@ public class SmartCarClient implements MqttCallback {
 	private MqttClient vehicleClient;
 	private String broker;
 	private int roadSegmentSpeed = -1;
-	private int signalSpeed = 1000;
+	public int signalSpeed = 1000;
 
 	public SmartCarClient(SmartCar smartCar, String brokerUrl) {
 		this.smartCar = smartCar;
@@ -215,8 +215,8 @@ public class SmartCarClient implements MqttCallback {
 	private int setVehicleSpeed() {	
 		checkRoadSegmentMaxSpeed(ROAD_SEGMENT_URL);
 		if(isSpecialVehicle()) {
-			return this.smartCar.getCurrentSpeed();
+			return this.smartCar.getCruiseSpeed();
 		}
-		return Math.min(this.smartCar.getCurrentSpeed(), Math.min(roadSegmentSpeed, signalSpeed));
+		return Math.min(this.smartCar.getCruiseSpeed(), Math.min(roadSegmentSpeed, signalSpeed));
 	}
 }
