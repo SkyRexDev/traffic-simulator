@@ -66,29 +66,36 @@ public class SpeedLimit implements MqttCallback {
 		//System.out.println("-------------------------------------------------");
 		
 		MqttTopic topic2 = this.myClient.getTopic(topic1);
-    	JSONObject pubMsg = new JSONObject();
+    	JSONObject json = new JSONObject();
 		try {
-			pubMsg.put("signal-type", "SPEED_LIMIT");
-			pubMsg.put("id", id);
-			pubMsg.put("road", this.road);
-			pubMsg.put("max-speed", speed);
-			pubMsg.put("first-km", minRoad);
-			pubMsg.put("last-km", maxRoad);
+			JSONObject msgJson = new JSONObject();
+	        msgJson.put("signal-type", "SPEED_LIMIT");
+	        msgJson.put("rt", "traffic-signal");
+	        msgJson.put("id", this.id);
+	        msgJson.put("road-segment", this.road);
+	        msgJson.put("starting-position", this.minRoad);
+	        msgJson.put("ending-position", this.maxRoad);
+	        msgJson.put("value", this.speed);
+
+	        String timeStamp = java.time.Instant.now().toString();
+	        json.put("msg", msgJson);
+	        json.put("id", "MSG_" + timeStamp);
+	        json.put("type", "TRAFFIC_SIGNAL");
+	        json.put("timestamp", timeStamp);
 	   		} catch (JSONException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
    		int pubQoS = 0;
-   		MqttMessage message = new MqttMessage(pubMsg.toString().getBytes());
+   		MqttMessage message = new MqttMessage(json.toString().getBytes());
     	message.setQos(pubQoS);
     	message.setRetained(true);
     	// Publish the message
-    	this._debug("Publishing to topic \"" + topic1 + "\" qos " + pubQoS);
     	MqttDeliveryToken token = null;
         try {
-            token = topic2.publish(new MqttMessage((pubMsg.toString()).getBytes()));
-            this._debug("Message: " + pubMsg.toString());
+            token = topic2.publish(message);
+            //this._debug("Message: " + json.toString());
         } catch (Exception e) {
             MySimpleLogger.error(this.getClass().getName(), "Failed to publish message");
             e.printStackTrace();
