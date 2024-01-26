@@ -20,7 +20,7 @@ public class TrafficLightController implements MqttCallback {
 	private MqttClient client;
 	private String BROKER_URL = "tcp://ttmi008.iot.upv.es:1883";
 	private String roadTopic;
-//	private String STEP_TOPIC = "es/upv/pros/tatami/smartcities/traffic/PTPaterna/step";
+	private String STEP_TOPIC = "es/upv/pros/tatami/smartcities/traffic/PTPaterna/step";
 	private Dashboard dashboard; // Assuming Dashboard manages the light states
 	MqttConnectOptions connOpt;
 
@@ -35,10 +35,10 @@ public class TrafficLightController implements MqttCallback {
 			client = new MqttClient(BROKER_URL, MqttClient.generateClientId());
 			client.setCallback(this);
 			client.connect(connOpt);
-//			client.subscribe(STEP_TOPIC);
-//			MySimpleLogger.info(this.getClass().toString(), "Subscribed to " + STEP_TOPIC);
-			client.subscribe(roadTopic);
-			MySimpleLogger.info(this.getClass().toString(), "Subscribed to " + roadTopic);
+			client.subscribe(STEP_TOPIC);
+			MySimpleLogger.info(this.getClass().toString(), "Subscribed to " + STEP_TOPIC);
+//			client.subscribe(roadTopic);
+//			MySimpleLogger.info(this.getClass().toString(), "Subscribed to " + roadTopic);
 
 		} catch (MqttException e) {
 			e.printStackTrace();
@@ -54,7 +54,7 @@ public class TrafficLightController implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		String payload = new String(message.getPayload());
 		if (topic.equals(roadTopic)) {
-
+			
 			JSONObject jsonObj = new JSONObject(payload);
 			if (jsonObj.has("msg") && jsonObj.getJSONObject("msg").has("status")) {
 				String status = jsonObj.getJSONObject("msg").getString("status");
@@ -66,7 +66,6 @@ public class TrafficLightController implements MqttCallback {
 		System.out.println("| Topic:" + topic);
 		System.out.println("| Message: " + payload);
 		System.out.println("-------------------------------------------------");
-
 	}
 
 	@Override
@@ -127,10 +126,7 @@ public class TrafficLightController implements MqttCallback {
 		try {
 			// publish message to broker
 			token = mqtttopic.publish(message);
-			// Wait until the message has been delivered to the broker
-			token.waitForCompletion();
 			MySimpleLogger.info(this.getClass().toString(),"DONE");
-			Thread.sleep(100);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
