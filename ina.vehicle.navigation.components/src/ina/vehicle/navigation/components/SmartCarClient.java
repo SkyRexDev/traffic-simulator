@@ -55,7 +55,7 @@ public class SmartCarClient implements MqttCallback {
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken arg0) {
-		MySimpleLogger.trace(this.getClass().getName(), "Published current info for " + smartCar.getId());
+//		MySimpleLogger.trace(this.getClass().getName(), "Published current info for " + smartCar.getId());
 	}
 
 	@Override

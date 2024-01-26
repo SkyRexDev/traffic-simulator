@@ -106,7 +106,6 @@ public class TrafficLightController implements MqttCallback {
 			MySimpleLogger.info(this.getClass().toString(),
 					"Dashboard " + dashboard.getSmartDashboardID() + " changed RED light to ON");
 			String payload = "{\"state\":\"ON\",\"id\":\"f1\"}";
-			MySimpleLogger.info(this.getClass().toString(), "HE LLEGADO");
 			notify("dispositivo/ttmi056/funcion/f1/", payload);
 		}
 	}

@@ -76,7 +76,6 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 		//speed-limit
 		if (messageField.get("signal-type").equals("SPEED_LIMIT")) {
 			this.speedLimit = (int) messageField.get("value");
-			MySimpleLogger.trace("SIGNAL SUBSC", "" + this.speedLimit);
 			this.smartCar.smartCarClient.signalSpeed = this.speedLimit;
 		}
 		//traffic-light
@@ -98,10 +97,10 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 		try {
 			this.signalClient.subscribe(topic, 0);
 		} catch (MqttException e) {
-			MySimpleLogger.error(this.getClass().getName(), "Failed to subscribe to topic" + topic);
-			e.printStackTrace();
+//			MySimpleLogger.error(this.getClass().getName(), "Failed to subscribe to topic" + topic);
+//			e.printStackTrace();
 		} finally {
-			MySimpleLogger.info(this.getClass().getName(), "Signal subscribed to " + topic);
+			//MySimpleLogger.info(this.getClass().getName(), "Signal subscribed to " + topic);
 		}
 	}
 	
@@ -110,9 +109,9 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 			this.signalClient.unsubscribe(topic);
 			this.smartCar.smartCarClient.signalSpeed = 1000;
 		} catch (MqttException e) {
-			MySimpleLogger.error(this.getClass().getName(), "Failed to unsubscribe to topic" + topic);
-			e.printStackTrace();
+//			MySimpleLogger.error(this.getClass().getName(), "Failed to unsubscribe to topic" + topic);
+//			e.printStackTrace();
 		}
-		MySimpleLogger.info(this.getClass().getName(), "Signal unsubscribed to " + topic);
+//		MySimpleLogger.info(this.getClass().getName(), "Signal unsubscribed to " + topic);
 	}
 }
