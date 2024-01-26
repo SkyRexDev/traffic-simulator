@@ -2,6 +2,7 @@ package ina.myvehicle.test;
 
 import ina.vehicle.navigation.components.Route;
 import ina.vehicle.navigation.components.SmartCar;
+import ina.vehicle.navigation.components.SpeedLimit;
 import ina.vehicle.navigation.types.ENavigatorStatus;
 import ina.vehicle.navigation.utils.MySimpleLogger;
 
@@ -14,6 +15,7 @@ public class SmartCarTester {
 		route.addRouteFragment("R1s1", 0, 29);
 		route.addRouteFragment("R1s2a", 29, 320);
 		route.addRouteFragment("R5s1", 0, 300);
-		SmartCar smartcar = new SmartCar("2567KLM", "Ambulance", route);
+		SmartCar smartcar = new SmartCar("2567KLM", "PrivateUsage", route);
+		SpeedLimit speedLimit = new SpeedLimit("speed_signal_R1s2a", 35, "R1s2a", 29, 320);
 	}
 }

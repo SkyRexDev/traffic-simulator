@@ -68,10 +68,15 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		//Parse incoming json
 		JSONObject json = new JSONObject(message.toString());
+		if (!json.has("msg")) {
+			MySimpleLogger.info(this.getClass().getName(), "Bad json recieved");
+			return;
+		}
 		JSONObject messageField = json.getJSONObject("msg");
 		//speed-limit
-		if (messageField.get("signal-type").equals("speed-limit")) {
-			this.speedLimit = (int) json.get("max-speed");
+		if (messageField.get("signal-type").equals("SPEED_LIMIT")) {
+			this.speedLimit = (int) messageField.get("value");
+			MySimpleLogger.trace("SIGNAL SUBSC", "" + this.speedLimit);
 			this.smartCar.smartCarClient.signalSpeed = this.speedLimit;
 		}
 		//traffic-light
@@ -103,6 +108,7 @@ public class SmartCarSignalSubscriber implements MqttCallback {
 	public void unsubscribe(String topic) {
 		try {
 			this.signalClient.unsubscribe(topic);
+			this.smartCar.smartCarClient.signalSpeed = 1000;
 		} catch (MqttException e) {
 			MySimpleLogger.error(this.getClass().getName(), "Failed to unsubscribe to topic" + topic);
 			e.printStackTrace();
